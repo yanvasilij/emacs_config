@@ -1,17 +1,22 @@
-(require 'package)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
-;; Comment/uncomment this line to enable MELPA Stable if desired.  See `package-archive-priorities`
-;; and `package-pinned-packages`. Most users will not need or want to do this.
-;;(add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-(package-initialize)
+(setq url-proxy-services
+   '(("no_proxy" . "^\\(localhost\\|10\\..*\\|192\\.168\\..*\\)")
+     ("http" . "127.0.0.1:3128")
+     ("https" . "127.0.0.1:3128")))
+
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (package-initialize)
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(bmkp-last-as-first-bookmark-file "~/.emacs.d/bookmarks")
+ '(custom-safe-themes
+   '("ea5822c1b2fb8bb6194a7ee61af3fe2cc7e2c7bab272cbb498a0234984e1b2d9" default))
+ '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   (quote
-    (helm-projectile projectile cmake-ide helpful rtags function-args company sr-speedbar helm-gtags helm zenburn-theme evil))))
+   '(yasnippet-snippets flycheck-clang-tidy cmake-ide xclip flycheck helm-rtags company-rtags company-go evil-collection neotree iedit anzu comment-dwim-2 ws-butler dtrt-indent clean-aindent-mode yasnippet undo-tree volatile-highlights helm-gtags helm-projectile helm-swoop helm zygospore projectile company use-package evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -19,37 +24,32 @@
  ;; If there is more than one, they won't work right.
  )
 
+;(setq auto-mode-alist
+;      (append
+;       '(
+;         ( "\\.el$". lisp-mode))))
+;(global-font-lock-mode 1)
+
+(setq evil-want-keybinding nil)
+(evil-collection-init)
 (require 'evil)
 (evil-mode 1)
-(load-theme 'zenburn t)
-(require 'helm-config)
-(helm-mode 1)
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+(load-theme 'zenburn)
+(add-to-list 'load-path "~/.emacs.d/bookmark-plus")
+(require 'bookmark+)
 
-(setq
- helm-gtags-ignore-case t
- helm-gtags-auto-update t
- helm-gtags-use-input-at-cursor t
- helm-gtags-pulse-at-cursor t
- helm-gtags-prefix-key "\C-cg"
- helm-gtags-suggested-key-mapping t
- )
+(global-set-key (kbd "<f8>") 'neotree)
 
-(require 'helm-gtags)
-;; Enable helm-gtags-mode
-(add-hook 'dired-mode-hook 'helm-gtags-mode)
-(add-hook 'eshell-mode-hook 'helm-gtags-mode)
-(add-hook 'c-mode-hook 'helm-gtags-mode)
-(add-hook 'c++-mode-hook 'helm-gtags-mode)
-(add-hook 'asm-mode-hook 'helm-gtags-mode)
+(require 'yasnippet)
+(yas-global-mode 1)
 
-(define-key helm-gtags-mode-map (kbd "C-c g a") 'helm-gtags-tags-in-this-function)
-(define-key helm-gtags-mode-map (kbd "C-j") 'helm-gtags-select)
-(define-key helm-gtags-mode-map (kbd "M-.") 'helm-gtags-dwim)
-(define-key helm-gtags-mode-map (kbd "M-,") 'helm-gtags-pop-stack)
-(define-key helm-gtags-mode-map (kbd "C-c <") 'helm-gtags-previous-history)
-(define-key helm-gtags-mode-map (kbd "C-c >") 'helm-gtags-next-history)
+(require 'projectile)
+(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+(projectile-mode +1)
 
-(setq visible-bell 1)
+(setq projectile-project-search-path '("/home/user/ide-7.0-workspace/PLC" "/var/work/isagraf/qnxnto-i386/prdk" "/var/work/linux_scripts" "/var/work/qnx_scripts"))
 
 (require 'company)
 (add-hook 'after-init-hook 'global-company-mode)
@@ -70,15 +70,57 @@
 (define-key evil-normal-state-map (kbd "M-.") 'rtags-find-symbol-at-point)
 (define-key evil-normal-state-map (kbd "M-,") 'rtags-location-stack-back)
 
-(cmake-ide-setup)
-
 (global-set-key (kbd "<f5>") (lambda ()
 			       (interactive)
 			       (setq-local compilation-read-command nil)
-			       (call-interactively 'compile)))
+			       (call-interactively 'cmake-ide-compile)))
+(setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/PLC/PLC")
+(cmake-ide-setup)
 
-(projectile-mode +1)
-(define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
-(define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+(require 'helm-config)
+(global-set-key (kbd "M-x") 'helm-M-x)
+(helm-mode 1)
 
-(setq projectile-project-search-path '("~/work/"))
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
+(add-hook 'after-init-hook #'global-flycheck-mode)
+(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+
+;(use-package flycheck-clang-tidy
+;  :after flycheck
+;  :hook
+;  (flycheck-mode . flycheck-clang-tidy-setup)
+;  )
+
+(eval-after-load 'flycheck
+  '(add-hook 'flycheck-mode-hook #'flycheck-clang-tidy-setup))
+
+
+(global-display-line-numbers-mode)
+
+(defun switch-cmake-directory (path-to-project)
+  "Switch work directory for cmake-ide.  PATH-TO-PROJECT path to directory with sources."
+  (interactive "Dpath:\n")
+  (message "switched to %s" path-to-project)
+  )
+
+(defun plc-stack ()
+  "Switch cmake-ide to PLC-stack project."
+  (interactive)
+  (setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/PLC/PLC")
+  (cmake-ide-setup)
+  )
+
+(defun libshmem ()
+  "Switch cmake-ide to libshmem project."
+  (interactive)
+  "Switch cmake-ide to PLC-stack project."
+  (setq cmake-ide-build-dir "/var/work/libshmem/src")
+  (cmake-ide-setup)
+  )
+
+;(global-set-key (kbd "<f9>") (lambda ()
+;			       (interactive)
+;			       (setq-local compilation-read-command nil)
+;			       (call-interactively 'compile)))
