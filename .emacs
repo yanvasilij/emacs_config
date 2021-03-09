@@ -16,7 +16,7 @@
    '("ea5822c1b2fb8bb6194a7ee61af3fe2cc7e2c7bab272cbb498a0234984e1b2d9" default))
  '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   '(yasnippet-snippets flycheck-clang-tidy cmake-ide xclip flycheck helm-rtags company-rtags company-go evil-collection neotree iedit anzu comment-dwim-2 ws-butler dtrt-indent clean-aindent-mode yasnippet undo-tree volatile-highlights helm-gtags helm-projectile helm-swoop helm zygospore projectile company use-package evil)))
+   '(flycheck-irony company-irony-c-headers company-irony irony yasnippet-snippets flycheck-clang-tidy cmake-ide xclip flycheck helm-rtags company-rtags company-go evil-collection neotree iedit anzu comment-dwim-2 ws-butler dtrt-indent clean-aindent-mode yasnippet undo-tree volatile-highlights helm-gtags helm-projectile helm-swoop helm zygospore projectile company use-package evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -81,11 +81,37 @@
 (global-set-key (kbd "M-x") 'helm-M-x)
 (helm-mode 1)
 
-(use-package flycheck
-  :ensure t
-  :init (global-flycheck-mode))
-(add-hook 'after-init-hook #'global-flycheck-mode)
-(add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
+
+
+(global-display-line-numbers-mode)
+(which-function-mode)
+(setq c-default-style "linux" c-basic-offset 4)
+
+;; ============ irony configuration ==================
+
+(setf company-backends '())
+(add-hook 'c++-mode-hook 'irony-mode)
+(add-hook 'c-mode-hook 'irony-mode)
+(add-hook 'objc-mode-hook 'irony-mode)
+
+(add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options)
+
+(add-hook 'irony-mode-hook 'company-irony-setup-begin-commands)
+(setq company-backends (delete 'company-semantic company-backends))
+(eval-after-load 'company
+  '(add-to-list
+    'company-backends '(company-irony-c-headers company-irony)))
+(setq company-idle-delay 0)
+(define-key c-mode-map [(tab)] 'company-complete)
+(define-key c++-mode-map [(tab)] 'company-complete)
+
+;; ============ flycheck setup ==================
+
+;(use-package flycheck
+; :ensure t
+; :init (global-flycheck-mode))
+;add-hook 'after-init-hook #'global-flycheck-mode)
+;add-hook 'c++-mode-hook (lambda () (setq flycheck-gcc-language-standard "c++11")))
 
 ;(use-package flycheck-clang-tidy
 ;  :after flycheck
@@ -93,11 +119,13 @@
 ;  (flycheck-mode . flycheck-clang-tidy-setup)
 ;  )
 
+;eval-after-load 'flycheck
+; '(add-hook 'flycheck-mode-hook #'flycheck-clang-tidy-setup))
+
 (eval-after-load 'flycheck
-  '(add-hook 'flycheck-mode-hook #'flycheck-clang-tidy-setup))
+  '(add-hook 'flycheck-mode-hook #'flycheck-irony-setup))
 
-
-(global-display-line-numbers-mode)
+;; ============ projects hot bindings ==================
 
 (defun switch-cmake-directory (path-to-project)
   "Switch work directory for cmake-ide.  PATH-TO-PROJECT path to directory with sources."
@@ -115,10 +143,50 @@
 (defun libshmem ()
   "Switch cmake-ide to libshmem project."
   (interactive)
-  "Switch cmake-ide to PLC-stack project."
   (setq cmake-ide-build-dir "/var/work/libshmem/src")
   (cmake-ide-setup)
   )
+
+(defun isagraf ()
+  "Switch cmake-ide to isagraf project."
+  (interactive)
+  (setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/isagraf/prdk/IsaAce5/build/fo/i386")
+  (cmake-ide-setup)
+  )
+
+(defun popen-parent ()
+  "Switch cmake-ide to popen_parent."
+  (interactive)
+  (setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/qnx_examples/posix/popen/parent")
+  (cmake-ide-setup)
+  )
+
+(defun popen-subprocess ()
+  "Switch cmake-ide to popen_parent."
+  (interactive)
+  (setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/qnx_examples/posix/popen/subprocess")
+  (cmake-ide-setup)
+  )
+
+
+;(setf company-backends '())
+;(add-to-list 'company-backends 'company-keywords)
+;(add-to-list 'company-backends 'company-irony)
+;(add-to-list 'company-backends 'company-irony-c-headers)
+;(add-hook 'flycheck-mode-hook 'flycheck-irony-setup)
+;(defun trivialfis/flycheck ()
+;"Configurate flycheck."
+;(add-to-list 'display-buffer-alist
+;	`(,(rx bos "*Flycheck errors*" eos)
+;	    (display-buffer-reuse-window
+;	    display-buffer-in-side-window)
+;	    (side            . bottom)
+;	    (reusable-frames . visible)
+;	    (window-height   . 0.23)))
+;(setq flycheck-display-errors-function
+;    #'flycheck-display-error-messages-unless-error-list))
+;(add-hook 'prog-mode-hook 'trivialfis/flycheck)
+;(irony-mode 1)
 
 ;(global-set-key (kbd "<f9>") (lambda ()
 ;			       (interactive)
