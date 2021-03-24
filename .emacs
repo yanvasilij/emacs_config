@@ -16,7 +16,7 @@
    '("ea5822c1b2fb8bb6194a7ee61af3fe2cc7e2c7bab272cbb498a0234984e1b2d9" default))
  '(helm-minibuffer-history-key "M-p")
  '(package-selected-packages
-   '(flycheck-irony company-irony-c-headers company-irony irony yasnippet-snippets flycheck-clang-tidy cmake-ide xclip flycheck helm-rtags company-rtags company-go evil-collection neotree iedit anzu comment-dwim-2 ws-butler dtrt-indent clean-aindent-mode yasnippet undo-tree volatile-highlights helm-gtags helm-projectile helm-swoop helm zygospore projectile company use-package evil)))
+   '(spacemacs-theme markdown-mode flycheck-irony company-irony-c-headers company-irony irony yasnippet-snippets flycheck-clang-tidy cmake-ide xclip flycheck helm-rtags company-rtags company-go evil-collection neotree iedit anzu comment-dwim-2 ws-butler dtrt-indent clean-aindent-mode yasnippet undo-tree volatile-highlights helm-gtags helm-projectile helm-swoop helm zygospore projectile company use-package evil)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -70,11 +70,53 @@
 (define-key evil-normal-state-map (kbd "M-.") 'rtags-find-symbol-at-point)
 (define-key evil-normal-state-map (kbd "M-,") 'rtags-location-stack-back)
 
+;; ============ compilation setup ==================
+
 (global-set-key (kbd "<f5>") (lambda ()
 			       (interactive)
 			       (setq-local compilation-read-command nil)
 			       (call-interactively 'cmake-ide-compile)))
-(setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/PLC/PLC")
+
+;(setq split-width-threshold nil)
+;
+;(defun my-recompile ()
+;"Run compile and resize the compile window closing the old one if necessary"
+;(interactive)
+;(progn
+;(if (get-buffer "*compilation*") ; If old compile window exists
+;    (progn
+;    (delete-windows-on (get-buffer "*compilation*")) ; Delete the compilation windows
+;    (kill-buffer "*compilation*") ; and kill the buffers
+;    )
+;    )
+;(call-interactively 'cmake-ide-compile)
+;(enlarge-window 20)
+;)
+;)
+;(defun my-next-error () 
+;"Move point to next error and highlight it"
+;(interactive)
+;(progn
+;(next-error)
+;(end-of-line-nomark)
+;(beginning-of-line-mark)
+;)
+;)
+;
+;(defun my-previous-error () 
+;"Move point to previous error and highlight it"
+;(interactive)
+;(progn
+;(previous-error)
+;(end-of-line-nomark)
+;(beginning-of-line-mark)
+;)
+;)
+;
+;(global-set-key [f5] 'my-recompile)
+
+;; ============ cmake-ide setup ==================
+(setq cmake-ide-build-dir "/var/work/libshmem/src")
 (cmake-ide-setup)
 
 (require 'helm-config)
@@ -86,6 +128,17 @@
 (global-display-line-numbers-mode)
 (which-function-mode)
 (setq c-default-style "linux" c-basic-offset 4)
+
+
+;; ============ markdown ==================
+
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
 
 ;; ============ irony configuration ==================
 
@@ -168,6 +221,18 @@
   (cmake-ide-setup)
   )
 
+(defun nft_qnx_utilities ()
+  "Switch cmake-ide to popen_parent."
+  (interactive)
+  (setq cmake-ide-build-dir "/home/user/ide-7.0-workspace/nft_qnx_utilities")
+  (cmake-ide-setup)
+  )
+
+(defun link_in_the_same_window ()
+  "Switch to mode when links are open in the same window."
+  (interactive)
+   (add-to-list 'org-link-frame-setup '(file . find-file))
+  )
 
 ;(setf company-backends '())
 ;(add-to-list 'company-backends 'company-keywords)
@@ -192,3 +257,28 @@
 ;			       (interactive)
 ;			       (setq-local compilation-read-command nil)
 ;			       (call-interactively 'compile)))
+
+;(evil-define-key 'normal org-mode-map (kbd "<tab>") #'org-cycle)
+;(find-file "/home/user/Docs/mindmap/files/index.org")
+(setq initial-buffer-choice "/home/user/Docs/mindmap/files/index.org")
+
+(defun wvxvw/export-rel-url (path desc format)
+  (cl-case format
+    (html (format "<a href=\"%s\">%s</a>" path (or desc path)))
+    (latex (format "\\href{%s}{%s}" path (or desc path)))
+    (otherwise path)))
+
+(org-add-link-type "rel" 'browse-url 'wvxvw/export-rel-url)
+(add-hook 'evil-insert-state-exit-hook
+          (lambda ()
+	    (call-process-shell-command "~/opt/bash_utils/switch_layout_to_en.sh &" nil 0)
+	    ))
+
+
+(global-set-key (kbd "C-x <up>") 'windmove-up)
+(global-set-key (kbd "C-x <down>") 'windmove-down)
+(global-set-key (kbd "C-x <left>") 'windmove-left)
+(global-set-key (kbd "C-x <right>") 'windmove-right)
+
+(require 'org-bullets)
+(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
