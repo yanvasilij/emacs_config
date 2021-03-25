@@ -275,6 +275,8 @@
 	    ))
 
 
+;; ============ additional keys ==================
+
 (global-set-key (kbd "C-x <up>") 'windmove-up)
 (global-set-key (kbd "C-x <down>") 'windmove-down)
 (global-set-key (kbd "C-x <left>") 'windmove-left)
@@ -282,3 +284,28 @@
 
 (require 'org-bullets)
 (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+
+;; ============ agenda setup ==================
+(setq org-todo-keywords
+  '(
+(sequence "TODO" "DOING" "|" "DONE")
+))
+
+;(setq org-todo-keyword-faces
+;  '(("TODO" . (:foreground "#ff39a3" :weight bold))
+
+(setq org-todo-keyword-faces
+  '(("DOING" . (:foreground "#ff39a3" :weight bold))
+
+("STARTED" . "#E35DBF")
+("CANCELED" . (:foreground "white" :background "#4d4d4d" :weight bold))
+("DELEGATED" . "pink")
+("POSTPONED" . "#008080")))
+
+(setq org-agenda-files (list "/home/user/Docs/mindmap/files/todo/todo.org"))
+(setq org-agenda-window-setup 'current-window)
+
+;; ============ scrolling by one line ==================
+(setq scroll-step            1
+      scroll-conservatively  10000)
+
